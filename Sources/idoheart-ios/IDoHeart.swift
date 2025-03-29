@@ -47,13 +47,13 @@ public class IDoHeart {
             debugPrint("document RefId: \(referral.referralRefId), code: \(referral.code)")
             return referral
         } catch APIError.invalidURL {
-            debugPrint("❌ Error: Invalid URL")
+            debugPrint("❌ Error: generateCode: Invalid URL")
         } catch APIError.requestFailed(let statusCode) {
-            debugPrint("❌ Error: Request failed with status code \(statusCode)")
+            debugPrint("❌ Error: generateCode: Request failed with status code \(statusCode)")
         } catch APIError.decodingFailed {
-            debugPrint("❌ Error: Failed to decode response")
+            debugPrint("❌ Error: generateCode: Failed to decode response")
         } catch {
-            debugPrint("❌ Unknown Error: \(error)")
+            debugPrint("❌ Unknown Error: generateCode: \(error)")
         }
         return nil
     }
@@ -76,13 +76,13 @@ public class IDoHeart {
             debugPrint("Success: \(responseData.success), usedCount: \(responseData.usedCount)")
             return responseData
         } catch APIError.invalidURL {
-            debugPrint("❌ Error: Invalid URL")
+            debugPrint("❌ Error: useCode: Invalid URL")
         } catch APIError.requestFailed(let statusCode) {
-            debugPrint("❌ Error: Request failed with status code \(statusCode)")
+            debugPrint("❌ Error: useCode: Request failed with status code \(statusCode)")
         } catch APIError.decodingFailed {
-            debugPrint("❌ Error: Failed to decode response")
+            debugPrint("❌ Error: useCode: Failed to decode response")
         } catch {
-            debugPrint("❌ Unknown Error: \(error)")
+            debugPrint("❌ Unknown Error: useCode: \(error)")
         }
         return nil
     }
@@ -108,13 +108,13 @@ public class IDoHeart {
             debugPrint("document RefId: \(responseData.referralRefId)")//, usedCount: \(responseData.usedCount)")
             return responseData
         } catch APIError.invalidURL {
-            debugPrint("❌ Error: Invalid URL")
+            debugPrint("❌ Error: checkCode: Invalid URL")
         } catch APIError.requestFailed(let statusCode) {
-            debugPrint("❌ Error: Request failed with status code \(statusCode)")
+            debugPrint("❌ Error: checkCode: Request failed with status code \(statusCode)")
         } catch APIError.decodingFailed {
-            debugPrint("❌ Error: Failed to decode response")
+            debugPrint("❌ Error: checkCode: Failed to decode response")
         } catch {
-            debugPrint("❌ Unknown Error: \(error)")
+            debugPrint("❌ Unknown Error: checkCode: \(error)")
         }
         return nil
     }
