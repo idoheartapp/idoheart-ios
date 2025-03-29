@@ -25,7 +25,7 @@ public struct Referral: Codable, Sendable {
 /// IDoHeart.shared.checkCode(code:) // returns a referral of nil if not valid
 public class IDoHeart {
     @MainActor public static let shared = IDoHeart()
-    var apiKey: String? = nil
+    public var apiKey: String? = nil
     
     public func configure(apiKey: String) {
         self.apiKey = apiKey
@@ -175,8 +175,8 @@ public struct IDoHeartUseCode {
     }
 
     public struct ResponseData: Codable, Sendable {
-        let usedCount: Int
-        let success: Bool
+        public let usedCount: Int
+        public let success: Bool
     }
 
     // Async Function for POST Request
