@@ -11,10 +11,10 @@ import Foundation
 /// Referral model returned by backend and used to store in user defaults
 public struct Referral: Codable, Sendable {
     var referralRefId: String // the document ref id. Can be used to subscribe to changes?
-    var usedCount: Int  // single use 0 or 1
-    var code: String    // 32 bit hex
-    var createdAt: Date // local time not same as server side createdAt timestamp
-    var usedAt: Date? // local time not same as server side createdAt timestamp
+    public var usedCount: Int  // single use 0 or 1
+    public var code: String    // 32 bit hex
+    public var createdAt: Date // local time not same as server side createdAt timestamp
+    public var usedAt: Date? // local time not same as server side createdAt timestamp
 }
 
 /// SDK main functions to call the IDoHeart API.
