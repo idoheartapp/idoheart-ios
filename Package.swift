@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "idoheart-ios",
+    name: "IDoHeart",
     platforms: [
         .iOS(.v17),
         .macOS(.v14)
