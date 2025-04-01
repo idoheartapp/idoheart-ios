@@ -26,9 +26,20 @@ public struct Referral: Codable, Sendable {
 public class IDoHeart {
     @MainActor public static let shared = IDoHeart()
     public var apiKey: String? = nil
+    private var logger: LoggerWrapper
     
+    /// this configures the shared singleton with an API key
     public func configure(apiKey: String) {
         self.apiKey = apiKey
+    }
+    /// this creates the shared singleton and sets logging
+    init(apiKey: String? = nil, isLogging: Bool = true) {
+        self.apiKey = apiKey
+        self.logger = LoggerWrapper(
+            subsystem: "IDoHeart.API",
+            category: #file,
+            silenced: !isLogging
+        )
     }
 
     /// Async Task to create a referral code via API
@@ -36,7 +47,7 @@ public class IDoHeart {
     @MainActor
     public func generateCode() async -> Referral? {
         guard let apiKeyString = apiKey else {
-            debugPrint("❌ Error: IDoHeart API key not set")
+            logger.error("❌ Error: IDoHeart API key not set")
             return nil
         }
         do {
@@ -44,16 +55,16 @@ public class IDoHeart {
                 to: "https://idoheart.com/api/createReferral",
                 apiKey: apiKeyString
             )
-            debugPrint("document RefId: \(referral.referralRefId), code: \(referral.code)")
+            logger.debug("document RefId: \(referral.referralRefId), code: \(referral.code)")
             return referral
         } catch APIError.invalidURL {
-            debugPrint("❌ Error: generateCode: Invalid URL")
+            logger.error("❌ Error: generateCode: Invalid URL")
         } catch APIError.requestFailed(let statusCode) {
-            debugPrint("❌ Error: generateCode: Request failed with status code \(statusCode)")
+            logger.error("❌ Error: generateCode: Request failed with status code \(statusCode)")
         } catch APIError.decodingFailed {
-            debugPrint("❌ Error: generateCode: Failed to decode response")
+            logger.error("❌ Error: generateCode: Failed to decode response")
         } catch {
-            debugPrint("❌ Unknown Error: generateCode: \(error)")
+            logger.error("❌ Unknown Error: generateCode: \(error)")
         }
         return nil
     }
@@ -61,9 +72,9 @@ public class IDoHeart {
     /// Async Task to use a referral code via API
     /// returns a `IDoHeartUseCode.ResponseData` on success and nil if something went wrong
     @MainActor
-    public func useCode(code: String) async -> IDoHeartUseCode.ResponseData? {
+    public func useCode(code: String) async throws -> IDoHeartUseCode.ResponseData? {
         guard let apiKeyString = apiKey else {
-            debugPrint("❌ Error: IDoHeart API key not set")
+            logger.error("❌ Error: IDoHeart API key not set")
             return nil
         }
         let requestBody = IDoHeartUseCode.RequestBody(code: code)
@@ -73,18 +84,21 @@ public class IDoHeart {
                 with: requestBody,
                 apiKey: apiKeyString
             )
-            debugPrint("Success: \(responseData.success), usedCount: \(responseData.usedCount)")
+            logger.debug("Success: \(responseData.success), usedCount: \(responseData.usedCount)")
             return responseData
         } catch APIError.invalidURL {
-            debugPrint("❌ Error: useCode: Invalid URL")
+            logger.error("❌ Error: useCode: Invalid URL")
+            throw APIError.invalidURL
         } catch APIError.requestFailed(let statusCode) {
-            debugPrint("❌ Error: useCode: Request failed with status code \(statusCode)")
+            logger.error("❌ Error: useCode: Request failed with status code \(statusCode)")
+            throw APIError.requestFailed(statusCode: statusCode)
         } catch APIError.decodingFailed {
-            debugPrint("❌ Error: useCode: Failed to decode response")
+            logger.error("❌ Error: useCode: Failed to decode response")
+            throw APIError.decodingFailed
         } catch {
-            debugPrint("❌ Unknown Error: useCode: \(error)")
+            logger.error("❌ Unknown Error: useCode: \(error)")
+            throw error
         }
-        return nil
     }
     
     /// Async Task to check a referral code via API
@@ -93,10 +107,10 @@ public class IDoHeart {
     /// usedCount == 0 means not redeemed
     /// usedCount > 0 means it was redeemed (maybe even multiple times)
     @MainActor
-    public func checkCode(code: String) async -> Referral? {
+    public func checkCode(code: String) async throws -> Referral? {
         guard let apiKeyString = apiKey else {
-            debugPrint("❌ Error: IDoHeart API key not set")
-            return nil
+            logger.error("❌ Error: IDoHeart API key not set")
+            throw APIError.noAPIKey
         }
         let requestBody = IDoHeartCheckCode.RequestBody(code: code)
         do {
@@ -105,29 +119,32 @@ public class IDoHeart {
                 with: requestBody,
                 apiKey: apiKeyString
             )
-            debugPrint("document RefId: \(responseData.referralRefId)")//, usedCount: \(responseData.usedCount)")
+            logger.debug("document RefId: \(responseData.referralRefId)")
             return responseData
         } catch APIError.invalidURL {
-            debugPrint("❌ Error: checkCode: Invalid URL")
+            logger.error("❌ Error: checkCode: Invalid URL")
+            throw APIError.invalidURL
         } catch APIError.requestFailed(let statusCode) {
-            debugPrint("❌ Error: checkCode: Request failed with status code \(statusCode)")
+            logger.error("❌ Error: checkCode: Request failed with status code \(statusCode)")
+            throw APIError.requestFailed(statusCode: statusCode)
         } catch APIError.decodingFailed {
-            debugPrint("❌ Error: checkCode: Failed to decode response")
+            logger.error("❌ Error: checkCode: Failed to decode response")
+            throw APIError.decodingFailed
         } catch {
-            debugPrint("❌ Unknown Error: checkCode: \(error)")
+            logger.error("❌ Unknown Error: checkCode: \(error)")
+            throw error
         }
-        return nil
     }
 }
 
 extension IDoHeart {
     /// Define API Errors
     enum APIError: Error {
+        case noAPIKey
         case invalidURL
         case requestFailed(statusCode: Int)
         case decodingFailed
     }
-
 }
 
 /// Helper to call the IDoHeart API to generate a referral code
