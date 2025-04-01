@@ -26,14 +26,14 @@ public struct Referral: Codable, Sendable {
 public class IDoHeart {
     @MainActor public static let shared = IDoHeart()
     public var apiKey: String? = nil
-    private var logger: LoggerWrapper
+    private var logger = LoggerWrapper(
+        subsystem: "IDoHeart.API",
+        category: #file,
+        silenced: false
+    )
     
     /// this configures the shared singleton with an API key
-    public func configure(apiKey: String) {
-        self.apiKey = apiKey
-    }
-    /// this creates the shared singleton and sets logging
-    init(apiKey: String? = nil, isLogging: Bool = true) {
+    public func configure(apiKey: String, isLogging: Bool = true) {
         self.apiKey = apiKey
         self.logger = LoggerWrapper(
             subsystem: "IDoHeart.API",
