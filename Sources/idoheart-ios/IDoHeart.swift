@@ -10,8 +10,8 @@ import Foundation
 
 /// Referral model returned by backend and used to store in user defaults
 public struct Referral: Codable, Sendable {
-    var referralRefId: String // the document ref id. Can be used to subscribe to changes?
-    public var usedCount: Int  // single use 0 or 1
+    var referralRefId: String // the document ref id
+    public var usedCount: Int  // single use 0 or 1 
     public var code: String    // 32 bit hex
     public var createdAt: Date // local time not same as server side createdAt timestamp
     public var usedAt: Date? // local time not same as server side createdAt timestamp
@@ -45,10 +45,10 @@ public class IDoHeart {
     /// Async Task to create a referral code via API
     /// returns a Referral on success and nil if something went wrong
     @MainActor
-    public func generateCode() async -> Referral? {
+    public func generateCode() async throws -> Referral? {
         guard let apiKeyString = apiKey else {
             logger.error("❌ Error: IDoHeart API key not set")
-            return nil
+            throw APIError.noAPIKey
         }
         do {
             let referral = try await IDoHeartGenerateCode.postRequest(
@@ -59,14 +59,17 @@ public class IDoHeart {
             return referral
         } catch APIError.invalidURL {
             logger.error("❌ Error: generateCode: Invalid URL")
+            throw APIError.invalidURL
         } catch APIError.requestFailed(let statusCode) {
             logger.error("❌ Error: generateCode: Request failed with status code \(statusCode)")
+            throw APIError.requestFailed(statusCode: statusCode)
         } catch APIError.decodingFailed {
             logger.error("❌ Error: generateCode: Failed to decode response")
+            throw APIError.decodingFailed
         } catch {
             logger.error("❌ Unknown Error: generateCode: \(error)")
+            throw error
         }
-        return nil
     }
     
     /// Async Task to use a referral code via API
@@ -75,7 +78,7 @@ public class IDoHeart {
     public func useCode(code: String) async throws -> IDoHeartUseCode.ResponseData? {
         guard let apiKeyString = apiKey else {
             logger.error("❌ Error: IDoHeart API key not set")
-            return nil
+            throw APIError.noAPIKey
         }
         let requestBody = IDoHeartUseCode.RequestBody(code: code)
         do {
